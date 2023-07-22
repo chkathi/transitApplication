@@ -26,7 +26,7 @@ public class Route {
     return shortName;
   }
 
-  public void getShortName(String shortName) {
+  public void setShortName(String shortName) {
     this.shortName = shortName;
   }
 

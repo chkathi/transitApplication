@@ -16,6 +16,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import edu.csus.csc131.transit.data.StopTime;
+import edu.csus.csc131.transit.data.Route;
+import edu.csus.csc131.transit.repository.RouteRepository;
 import edu.csus.csc131.transit.repository.StopTimeRepository;
 
 @SpringBootApplication
@@ -27,6 +29,9 @@ public class TransitApplication implements CommandLineRunner {
 
   @Autowired
   private StopTimeRepository stopTimeRepo;
+
+  @Autowired
+  private RouteRepository routeRepo;
 
   public static void main(String[] args) {
     SpringApplication.run(TransitApplication.class, args);
@@ -48,7 +53,37 @@ public class TransitApplication implements CommandLineRunner {
 
   // ToDo: read routes from "routes.txt" and save them to the database
   private void createRoutes() {
+    routeRepo.deleteAll();
+    log.info("Start creating routes");
 
+    // Get Path File
+    Path path = FileSystems.getDefault().getPath(dataDir, "routes.txt");
+
+    int count = 0;
+
+    // Fetch the data from the file using BufferedReader
+    try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+      String line = reader.readLine(); // skip the first line
+
+      while ((line = reader.readLine()) != null) {
+        // Read and split into array
+        String[] tokens = line.split(",");
+
+        Route route = new Route();
+        route.setId(tokens[0].trim());
+        route.setShortName(tokens[1].trim());
+        route.setLongName(tokens[2].trim());
+
+        // Save to database
+        route = routeRepo.save(route);
+        count++;
+      }
+
+    } catch (IOException e) {
+      log.error("IOException: " + e.getMessage(), e);
+    }
+
+    log.info("Finished creating {} routes", count);
   }
 
   // ToDo: read transfers from "transfers.txt" and save them to the database
@@ -63,7 +98,7 @@ public class TransitApplication implements CommandLineRunner {
 
   private void createStopTimes() {
     stopTimeRepo.deleteAll();
-    log.info("Start createing stopTimes");
+    log.info("Start creating stopTimes");
     Path path = FileSystems.getDefault().getPath(dataDir, "stop_times.txt");
     int count = 0;
     try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {

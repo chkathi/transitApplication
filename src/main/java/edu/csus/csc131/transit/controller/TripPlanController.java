@@ -13,20 +13,20 @@ import edu.csus.csc131.transit.service.TripPlanService;
 @RestController
 @RequestMapping(value = "/tripPlans")
 public class TripPlanController {
-	
-	private TripPlanService tripPlanService;
-	
-	public TripPlanController(TripPlanService tripPlanService) {
-		this.tripPlanService = tripPlanService;
-	}
-	
-	@GetMapping
-	public TripPlan getTripPlan(
-			@RequestParam(required = true) String fromStopId, 
-			@RequestParam(required = true) String toStopId,
-			@RequestParam(required = true)  ZonedDateTime departTime) {
-		return tripPlanService.getPlan(fromStopId, toStopId, departTime);
 
-	} 
+  private TripPlanService tripPlanService;
+
+  public TripPlanController(TripPlanService tripPlanService) {
+    this.tripPlanService = tripPlanService;
+  }
+
+  @GetMapping
+  public TripPlan getTripPlan(
+      @RequestParam(required = true) String fromStopId,
+      @RequestParam(required = true) String toStopId,
+      @RequestParam(required = true) ZonedDateTime departTime) {
+    return tripPlanService.getPlan(fromStopId, toStopId, departTime);
+
+  }
 
 }

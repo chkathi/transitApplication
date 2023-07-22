@@ -8,8 +8,8 @@ public class Stop {
 	@Id
 	private String id;
 	private String name;
-	private String lat;
-	private String lon;
+	private double lat;
+	private double lon;
 	
 	public Stop() {
 		super();
@@ -31,19 +31,19 @@ public class Stop {
         this.name = name;
     }
 
-    public String getLat() {
+    public double getLat() {
         return lat;
     }
 
-    public void setLat(String lat) {
+    public void setLat(double lat) {
         this.lat = lat;
     }
 
-    public String getLon() {
+    public double getLon() {
         return lon;
     }
 
-    public void setLon(String lon) {
+    public void setLon(double lon) {
         this.lon = lon;
     }
 

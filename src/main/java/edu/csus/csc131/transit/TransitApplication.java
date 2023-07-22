@@ -20,72 +20,72 @@ import edu.csus.csc131.transit.repository.StopTimeRepository;
 
 @SpringBootApplication
 public class TransitApplication implements CommandLineRunner {
-	private final Logger log = LoggerFactory.getLogger(getClass());
-	
-	@Value("${dataRoot}")
-	private String dataDir;
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
-	@Autowired
-	private StopTimeRepository stopTimeRepo;
+  @Value("${dataRoot}")
+  private String dataDir;
 
-	public static void main(String[] args) {
-		SpringApplication.run(TransitApplication.class, args);
-	}
+  @Autowired
+  private StopTimeRepository stopTimeRepo;
 
-	@Override
-	public void run(String... args) throws Exception {
-		createStops();
-		createRoutes();
-		createTransfers();
-		createTrips();
-		createStopTimes();
-	}
+  public static void main(String[] args) {
+    SpringApplication.run(TransitApplication.class, args);
+  }
 
-	// ToDo: read stops from "stops.txt" and save them to the database
-	private void createStops() {
+  @Override
+  public void run(String... args) throws Exception {
+    createStops();
+    createRoutes();
+    createTransfers();
+    createTrips();
+    createStopTimes();
+  }
 
-	}
+  // ToDo: read stops from "stops.txt" and save them to the database
+  private void createStops() {
 
-	// ToDo: read routes from "routes.txt" and save them to the database
-	private void createRoutes() {
+  }
 
-	}
+  // ToDo: read routes from "routes.txt" and save them to the database
+  private void createRoutes() {
 
-	// ToDo: read transfers from "transfers.txt" and save them to the database
-	private void createTransfers() {
+  }
 
-	}
+  // ToDo: read transfers from "transfers.txt" and save them to the database
+  private void createTransfers() {
 
-	// ToDo: read trips from "trips.txt" and save them to the database
-	private void createTrips() {
+  }
 
-	}
+  // ToDo: read trips from "trips.txt" and save them to the database
+  private void createTrips() {
 
-	private void createStopTimes() {
-		stopTimeRepo.deleteAll();
-		log.info("Start createing stopTimes");
-		Path path = FileSystems.getDefault().getPath(dataDir, "stop_times.txt");
-		int count = 0;
-		try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
-			String line = reader.readLine(); // skip the first line
-			while ((line = reader.readLine()) != null) {
-				String[] tokens = line.split(",");
-				int lastIndex = tokens.length - 1;
-				
-				StopTime stopTime = new StopTime();
-				stopTime.setTripId(tokens[0].trim());
-				stopTime.setArrivalTime(tokens[1].trim());
-				stopTime.setDepartureTime(tokens[2].trim());
-				stopTime.setStopId(tokens[3].trim());
-				stopTime.setDistTraveled(Double.parseDouble(tokens[lastIndex]));
+  }
 
-				stopTime = stopTimeRepo.save(stopTime);
-				count++;
-			}
-		} catch (IOException x) {
-			log.error("IOException: " + x.getMessage(), x);
-		}
-		log.info("Finished createing {} stopTimes", count);
-	}
+  private void createStopTimes() {
+    stopTimeRepo.deleteAll();
+    log.info("Start createing stopTimes");
+    Path path = FileSystems.getDefault().getPath(dataDir, "stop_times.txt");
+    int count = 0;
+    try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+      String line = reader.readLine(); // skip the first line
+      while ((line = reader.readLine()) != null) {
+        String[] tokens = line.split(",");
+        int lastIndex = tokens.length - 1;
+
+        StopTime stopTime = new StopTime();
+        stopTime.setTripId(tokens[0].trim());
+        stopTime.setArrivalTime(tokens[1].trim());
+        stopTime.setDepartureTime(tokens[2].trim());
+        stopTime.setStopId(tokens[3].trim());
+        stopTime.setDistTraveled(Double.parseDouble(tokens[lastIndex]));
+
+        stopTime = stopTimeRepo.save(stopTime);
+        count++;
+      }
+    } catch (IOException x) {
+      log.error("IOException: " + x.getMessage(), x);
+    }
+    log.info("Finished createing {} stopTimes", count);
+  }
 
 }

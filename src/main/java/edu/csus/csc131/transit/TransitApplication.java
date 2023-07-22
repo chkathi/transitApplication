@@ -93,7 +93,7 @@ public class TransitApplication implements CommandLineRunner {
 
   // ToDo: read trips from "trips.txt" and save them to the database
   private void createTrips() {
-
+    
   }
 
   private void createStopTimes() {

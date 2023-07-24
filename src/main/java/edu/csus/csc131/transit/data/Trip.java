@@ -43,7 +43,7 @@ public class Trip {
         return directionId;
     }    
 
-    public void setDirectionI(int directionId) {
+    public void setDirectionId(int directionId) {
         this.directionId = directionId;
     }
 

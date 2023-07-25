@@ -3,7 +3,9 @@ package edu.csus.csc131.transit.data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+@Document
 public class Transfer{
+	@Id
 	private String id;
 	private String fromStopId;
 	private String toStopId;

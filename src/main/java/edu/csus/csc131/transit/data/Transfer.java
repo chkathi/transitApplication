@@ -25,43 +25,43 @@ public class Transfer {
     this.id = id;
   }
 
-  public String getfromStopId() {
+  public String getFromStopId() {
     return fromStopId;
   }
 
-  public void setfromStopId(String fromStopId) {
+  public void setFromStopId(String fromStopId) {
     this.fromStopId = fromStopId;
   }
 
-  public String gettoStopId() {
+  public String getToStopId() {
     return toStopId;
   }
 
-  public void settoStopId(String toStopId) {
+  public void setToStopId(String toStopId) {
     this.toStopId = toStopId;
   }
 
-  public int getminTransferTime() {
+  public int getMinTransferTime() {
     return minTransferTime;
   }
 
-  public void setminTransferTime(int minTransferTime) {
+  public void setMinTransferTime(int minTransferTime) {
     this.minTransferTime = minTransferTime;
   }
 
-  public String getfromRouteId() {
+  public String getFromRouteId() {
     return fromRouteId;
   }
 
-  public void setfromRouteId(String fromRouteId) {
+  public void setFromRouteId(String fromRouteId) {
     this.fromRouteId = fromRouteId;
   }
 
-  public String gettoRouteId() {
+  public String getToRouteId() {
     return toRouteId;
   }
 
-  public void settoRouteId(String toRouteId) {
+  public void setToRouteId(String toRouteId) {
     this.toRouteId = toRouteId;
   }
 

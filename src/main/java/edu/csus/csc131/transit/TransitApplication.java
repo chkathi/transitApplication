@@ -17,8 +17,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import edu.csus.csc131.transit.data.StopTime;
 import edu.csus.csc131.transit.data.Route;
+import edu.csus.csc131.transit.data.Trip;
 import edu.csus.csc131.transit.repository.RouteRepository;
 import edu.csus.csc131.transit.repository.StopTimeRepository;
+import edu.csus.csc131.transit.repository.TripRepository;
 
 @SpringBootApplication
 public class TransitApplication implements CommandLineRunner {
@@ -32,6 +34,9 @@ public class TransitApplication implements CommandLineRunner {
 
   @Autowired
   private RouteRepository routeRepo;
+
+  @Autowired
+  private TripRepository tripRepo;
 
   public static void main(String[] args) {
     SpringApplication.run(TransitApplication.class, args);
@@ -48,7 +53,6 @@ public class TransitApplication implements CommandLineRunner {
 
   // ToDo: read stops from "stops.txt" and save them to the database
   private void createStops() {
-
   }
 
   // ToDo: read routes from "routes.txt" and save them to the database
@@ -88,12 +92,33 @@ public class TransitApplication implements CommandLineRunner {
 
   // ToDo: read transfers from "transfers.txt" and save them to the database
   private void createTransfers() {
-
   }
 
-  // ToDo: read trips from "trips.txt" and save them to the database
   private void createTrips() {
-    
+    tripRepo.deleteAll();
+    log.info("Start creating trips");
+    Path path = FileSystems.getDefault().getPath(dataDir, "trips.txt");
+    int count = 0;
+    try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+      String line = reader.readLine(); // skip the first line
+      while ((line = reader.readLine()) != null) {
+        String[] tokens = line.split(",");
+
+        Trip trip = new Trip();
+        trip.setRouteId(tokens[0].trim());
+        trip.setServiceId(tokens[1].trim());
+        trip.setId(tokens[2].trim());
+
+        int directionId = Integer.parseInt(tokens[4].trim());
+        trip.setDirectionId(directionId);
+
+        trip = tripRepo.save(trip);
+        count++;
+      }
+    } catch (IOException x) {
+      log.error("IOException: " + x.getMessage(), x);
+    }
+    log.info("Finished creating {} trips", count);
   }
 
   private void createStopTimes() {

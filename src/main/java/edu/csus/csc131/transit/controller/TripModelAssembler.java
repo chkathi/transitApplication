@@ -13,9 +13,9 @@ public class TripModelAssembler implements RepresentationModelAssembler<Trip, En
 
   @Override
   public EntityModel<Trip> toModel(Trip Trip) {
-    return EntityModel.of(Trip, //
+    return EntityModel.of(Trip,
         linkTo(methodOn(TripController.class).getTrip(Trip.getId())).withSelfRel(),
-        linkTo(methodOn(TripController.class).getAllTrips(null, null)).withRel("trips"));
+        linkTo(methodOn(TripController.class).getAllTrips(null)).withRel("trips"));
   }
 
 }

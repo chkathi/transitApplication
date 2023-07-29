@@ -32,14 +32,14 @@ public class TripController {
 
   @GetMapping
   public CollectionModel<EntityModel<Trip>> getAllTrips(
-      @RequestParam(required = false) String tripId, @RequestParam(required = false) String routeId) {
+      @RequestParam(required = false) String routeId) {
     log.info("Getting all trips.");
 
     List<Trip> Trips = null;
-    if ((tripId == null || tripId.isBlank()) && (routeId == null || routeId.isBlank())) {
-      Trips = TripRepository.findAll(); // If no tripId & routeId specificed, find all
+    if (routeId == null || routeId.isBlank()) {
+      Trips = TripRepository.findAll(); // If no routeId specificed, find all
     } else {
-      Trips = TripRepository.findByRouteId(routeId); // If no tripId, find via routeId
+      Trips = TripRepository.findByRouteId(routeId); // If specified, find by routeId
     }
     log.info("Returning {} trips.", Trips.size());
 
@@ -49,7 +49,7 @@ public class TripController {
         .map(TripAssembler::toModel) //
         .toList();
     return CollectionModel.of(TripList,
-        linkTo(methodOn(TripController.class).getAllTrips(tripId, routeId)).withSelfRel());
+        linkTo(methodOn(TripController.class).getAllTrips(routeId)).withSelfRel());
   }
 
   @GetMapping(value = "/{id}")

@@ -22,12 +22,12 @@ import edu.csus.csc131.transit.repository.TransferRepository;
 @RequestMapping(value = "/transfers")
 public class TransferController {
   private final Logger log = LoggerFactory.getLogger(getClass());
-  private TransferRepository TransferRepository;
-  private TransferModelAssembler TransferAssembler;
+  private TransferRepository transferRepository;
+  private TransferModelAssembler transferAssembler;
 
-  public TransferController(TransferRepository TransferRepository, TransferModelAssembler TransferModelAssembler) {
-    this.TransferRepository = TransferRepository;
-    this.TransferAssembler = TransferModelAssembler;
+  public TransferController(TransferRepository transferRepository, TransferModelAssembler transferModelAssembler) {
+    this.transferRepository = transferRepository;
+    this.transferAssembler = transferModelAssembler;
   }
 
   @GetMapping
@@ -35,29 +35,30 @@ public class TransferController {
       @RequestParam(required = false) String fromStopId, @RequestParam(required = false) String toStopId) {
     log.info("Getting all transfers.");
 
-    List<Transfer> Transfers = null;
+    List<Transfer> transfers = null;
     if ((fromStopId == null || fromStopId.isBlank()) && (toStopId == null || toStopId.isBlank())) {
-      Transfers = TransferRepository.findAll();
+      transfers = transferRepository.findAll();
     } else {
-      Transfers = TransferRepository.findByFromStopIdAndToStopId( fromStopId, toStopId);
+      transfers = transferRepository.findByFromStopIdAndToStopId(fromStopId, toStopId);
     }
-    log.info("Returning {} transfers.", Transfers.size());
+    log.info("Returning {} transfers.", transfers.size());
 
     // Java Aggregate Operations Tutorial:
     // https://docs.oracle.com/javase/tutorial/collections/streams/index.html
-    List<EntityModel<Transfer>> TransferList = Transfers.stream() //
-        .map(TransferAssembler::toModel) //
+    List<EntityModel<Transfer>> transferList = transfers.stream() //
+        .map(transferAssembler::toModel) //
         .toList();
-    return CollectionModel.of(TransferList,
+    return CollectionModel.of(transferList,
         linkTo(methodOn(TransferController.class).getAllTransfers(fromStopId, toStopId)).withSelfRel());
   }
 
   @GetMapping(value = "/{id}")
   public EntityModel<Transfer> getTransfer(@PathVariable String id) {
     log.info("Getting a transfer by Id: {}.", id);
-    Transfer Transfer = TransferRepository.findById(id)
+
+    Transfer transfer = transferRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("transfer", id));
-    return TransferAssembler.toModel(Transfer);
+    return transferAssembler.toModel(transfer);
   }
 
 }

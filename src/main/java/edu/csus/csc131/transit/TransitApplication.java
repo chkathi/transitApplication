@@ -18,12 +18,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import edu.csus.csc131.transit.data.StopTime;
 import edu.csus.csc131.transit.data.Route;
 import edu.csus.csc131.transit.data.Trip;
-import edu.csus.csc131.transit.data.Stop;
+import edu.csus.csc131.transit.data.Transfer;
 import edu.csus.csc131.transit.repository.RouteRepository;
 import edu.csus.csc131.transit.repository.StopTimeRepository;
 import edu.csus.csc131.transit.repository.TripRepository;
-import edu.csus.csc131.transit.repository.StopRepository;
-
+import edu.csus.csc131.transit.repository.TransferRepository;
 @SpringBootApplication
 public class TransitApplication implements CommandLineRunner {
   private final Logger log = LoggerFactory.getLogger(getClass());
@@ -35,13 +34,13 @@ public class TransitApplication implements CommandLineRunner {
   private StopTimeRepository stopTimeRepo;
 
   @Autowired
+  private TransferRepository transferRepo;
+
+  @Autowired
   private RouteRepository routeRepo;
 
   @Autowired
   private TripRepository tripRepo;
-
-  @Autowired
-  private StopRepository stopRepo;
 
   public static void main(String[] args) {
     SpringApplication.run(TransitApplication.class, args);
@@ -58,44 +57,6 @@ public class TransitApplication implements CommandLineRunner {
 
   // ToDo: read stops from "stops.txt" and save them to the database
   private void createStops() {
-    stopRepo.deleteAll();
-    log.info("Start creating stops");
-
-    // Get Stop File
-    Path path = FileSystems.getDefault().getPath(dataDir, "stops.txt");
-
-    int count = 0;
-
-    // Fetch the data from the file using BufferedReader
-    try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
-      String line = reader.readLine(); // skip the first line
-
-      while ((line = reader.readLine()) != null) {
-        // Read and split into array
-        String[] tokens = line.split(",");
-        String temp = "";
-
-        Stop stop = new Stop();
-        temp = tokens[0].substring(1, tokens[0].length() - 1);
-        stop.setId(temp.trim());
-        temp = tokens[1].substring(1, tokens[1].length() - 1);
-        stop.setName(temp.trim());
-        temp = tokens[4].substring(1, tokens[4].length() - 1);
-        stop.setLat(Double.parseDouble(temp.trim()));
-        temp = tokens[5].substring(1, tokens[5].length() - 1);
-        stop.setLon(Double.parseDouble(temp.trim()));
-
-        // Save to database
-        stop = stopRepo.save(stop);
-        count++;
-      }
-
-    } catch (IOException e) {
-      log.error("IOException: " + e.getMessage(), e);
-    }
-
-    log.info("Finished creating {} stops", count);
-
   }
 
   // ToDo: read routes from "routes.txt" and save them to the database
@@ -131,10 +92,6 @@ public class TransitApplication implements CommandLineRunner {
     }
 
     log.info("Finished creating {} routes", count);
-  }
-
-  // ToDo: read transfers from "transfers.txt" and save them to the database
-  private void createTransfers() {
   }
 
   private void createTrips() {
@@ -190,5 +147,38 @@ public class TransitApplication implements CommandLineRunner {
     }
     log.info("Finished createing {} stopTimes", count);
   }
+
+// ToDo: read transfers from "transfers.txt" and save them to the database
+private void createTransfers() {
+  transferRepo.deleteAll();
+  log.info("Start creating transfers");
+  Path path = FileSystems.getDefault().getPath(dataDir, "transfers.txt");
+  int count = 0;
+  try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+    String line = reader.readLine(); // skip the first line
+    while ((line = reader.readLine()) != null) {
+      String[] tokens = line.split(",");
+
+      Transfer transfer = new Transfer();
+      if (tokens.length > 4) {
+        transfer.setToRouteId(tokens[5].trim());
+        transfer.setFromRouteId(tokens[4].trim());
+      } else {
+        transfer.setFromRouteId("");
+        transfer.setFromRouteId("");
+      }
+
+      transfer.setToStopId(tokens[1].trim());
+      transfer.setFromStopId(tokens[0].trim());
+      transfer.setMinTransferTime(Integer.parseInt(tokens[3].trim()));
+
+      transfer = transferRepo.save(transfer);
+      count++;
+    }
+  } catch (IOException x) {
+    log.error("IOException: " + x.getMessage(), x);
+  }
+  log.info("Finished creating {} transfers", count);
+}
 
 }

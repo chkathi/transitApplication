@@ -25,6 +25,7 @@ import edu.csus.csc131.transit.repository.StopTimeRepository;
 import edu.csus.csc131.transit.repository.TripRepository;
 import edu.csus.csc131.transit.repository.TransferRepository;
 import edu.csus.csc131.transit.repository.StopRepository;
+
 @SpringBootApplication
 public class TransitApplication implements CommandLineRunner {
   private final Logger log = LoggerFactory.getLogger(getClass());
@@ -73,7 +74,7 @@ public class TransitApplication implements CommandLineRunner {
     // Fetch the data from the file using BufferedReader
     try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
       String line = reader.readLine(); // skip the first line
-    
+
       while ((line = reader.readLine()) != null) {
         // Read and split into array
         String[] tokens = line.split(",");
@@ -82,26 +83,25 @@ public class TransitApplication implements CommandLineRunner {
         Stop stop = new Stop();
         temp = tokens[0].substring(1, tokens[0].length() - 1);
         stop.setId(temp.trim());
-        temp = tokens[1].substring(1, tokens[1].length()-1);
+        temp = tokens[1].substring(1, tokens[1].length() - 1);
         stop.setName(temp.trim());
-        temp = tokens[4].substring(1, tokens[4].length()-1);
+        temp = tokens[4].substring(1, tokens[4].length() - 1);
         stop.setLat(Double.parseDouble(temp.trim()));
-        temp = tokens[5].substring(1, tokens[5].length()-1);
+        temp = tokens[5].substring(1, tokens[5].length() - 1);
         stop.setLon(Double.parseDouble(temp.trim()));
 
         // Save to database
         stop = stopRepo.save(stop);
         count++;
       }
-    
+
     } catch (IOException e) {
       log.error("IOException: " + e.getMessage(), e);
     }
 
     log.info("Finished creating {} stops", count);
-    
-  }
 
+  }
 
   // ToDo: read routes from "routes.txt" and save them to the database
   private void createRoutes() {
@@ -181,6 +181,7 @@ public class TransitApplication implements CommandLineRunner {
         stopTime.setArrivalTime(tokens[1].trim());
         stopTime.setDepartureTime(tokens[2].trim());
         stopTime.setStopId(tokens[3].trim());
+        stopTime.setStopSequence(Integer.parseInt(tokens[4].trim()));
         stopTime.setDistTraveled(Double.parseDouble(tokens[lastIndex]));
 
         stopTime = stopTimeRepo.save(stopTime);
@@ -192,37 +193,37 @@ public class TransitApplication implements CommandLineRunner {
     log.info("Finished createing {} stopTimes", count);
   }
 
-// ToDo: read transfers from "transfers.txt" and save them to the database
-private void createTransfers() {
-  transferRepo.deleteAll();
-  log.info("Start creating transfers");
-  Path path = FileSystems.getDefault().getPath(dataDir, "transfers.txt");
-  int count = 0;
-  try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
-    String line = reader.readLine(); // skip the first line
-    while ((line = reader.readLine()) != null) {
-      String[] tokens = line.split(",");
+  // ToDo: read transfers from "transfers.txt" and save them to the database
+  private void createTransfers() {
+    transferRepo.deleteAll();
+    log.info("Start creating transfers");
+    Path path = FileSystems.getDefault().getPath(dataDir, "transfers.txt");
+    int count = 0;
+    try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+      String line = reader.readLine(); // skip the first line
+      while ((line = reader.readLine()) != null) {
+        String[] tokens = line.split(",");
 
-      Transfer transfer = new Transfer();
-      if (tokens.length > 4) {
-        transfer.setToRouteId(tokens[5].trim());
-        transfer.setFromRouteId(tokens[4].trim());
-      } else {
-        transfer.setFromRouteId("");
-        transfer.setFromRouteId("");
+        Transfer transfer = new Transfer();
+        if (tokens.length > 4) {
+          transfer.setToRouteId(tokens[5].trim());
+          transfer.setFromRouteId(tokens[4].trim());
+        } else {
+          transfer.setFromRouteId("");
+          transfer.setFromRouteId("");
+        }
+
+        transfer.setToStopId(tokens[1].trim());
+        transfer.setFromStopId(tokens[0].trim());
+        transfer.setMinTransferTime(Integer.parseInt(tokens[3].trim()));
+
+        transfer = transferRepo.save(transfer);
+        count++;
       }
-
-      transfer.setToStopId(tokens[1].trim());
-      transfer.setFromStopId(tokens[0].trim());
-      transfer.setMinTransferTime(Integer.parseInt(tokens[3].trim()));
-
-      transfer = transferRepo.save(transfer);
-      count++;
+    } catch (IOException x) {
+      log.error("IOException: " + x.getMessage(), x);
     }
-  } catch (IOException x) {
-    log.error("IOException: " + x.getMessage(), x);
+    log.info("Finished creating {} transfers", count);
   }
-  log.info("Finished creating {} transfers", count);
-}
 
 }

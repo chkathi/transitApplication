@@ -17,12 +17,14 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import edu.csus.csc131.transit.data.StopTime;
 import edu.csus.csc131.transit.data.Route;
+import edu.csus.csc131.transit.data.Stop;
 import edu.csus.csc131.transit.data.Trip;
 import edu.csus.csc131.transit.data.Transfer;
 import edu.csus.csc131.transit.repository.RouteRepository;
 import edu.csus.csc131.transit.repository.StopTimeRepository;
 import edu.csus.csc131.transit.repository.TripRepository;
 import edu.csus.csc131.transit.repository.TransferRepository;
+import edu.csus.csc131.transit.repository.StopRepository;
 @SpringBootApplication
 public class TransitApplication implements CommandLineRunner {
   private final Logger log = LoggerFactory.getLogger(getClass());
@@ -42,6 +44,9 @@ public class TransitApplication implements CommandLineRunner {
   @Autowired
   private TripRepository tripRepo;
 
+  @Autowired
+  private StopRepository stopRepo;
+
   public static void main(String[] args) {
     SpringApplication.run(TransitApplication.class, args);
   }
@@ -57,7 +62,46 @@ public class TransitApplication implements CommandLineRunner {
 
   // ToDo: read stops from "stops.txt" and save them to the database
   private void createStops() {
+    stopRepo.deleteAll();
+    log.info("Start creating stops");
+
+    // Get Stop File
+    Path path = FileSystems.getDefault().getPath(dataDir, "stops.txt");
+
+    int count = 0;
+
+    // Fetch the data from the file using BufferedReader
+    try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+      String line = reader.readLine(); // skip the first line
+    
+      while ((line = reader.readLine()) != null) {
+        // Read and split into array
+        String[] tokens = line.split(",");
+        String temp = "";
+
+        Stop stop = new Stop();
+        temp = tokens[0].substring(1, tokens[0].length() - 1);
+        stop.setId(temp.trim());
+        temp = tokens[1].substring(1, tokens[1].length()-1);
+        stop.setName(temp.trim());
+        temp = tokens[4].substring(1, tokens[4].length()-1);
+        stop.setLat(Double.parseDouble(temp.trim()));
+        temp = tokens[5].substring(1, tokens[5].length()-1);
+        stop.setLon(Double.parseDouble(temp.trim()));
+
+        // Save to database
+        stop = stopRepo.save(stop);
+        count++;
+      }
+    
+    } catch (IOException e) {
+      log.error("IOException: " + e.getMessage(), e);
+    }
+
+    log.info("Finished creating {} stops", count);
+    
   }
+
 
   // ToDo: read routes from "routes.txt" and save them to the database
   private void createRoutes() {

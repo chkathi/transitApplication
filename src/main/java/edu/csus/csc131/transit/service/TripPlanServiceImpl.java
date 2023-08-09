@@ -54,14 +54,14 @@ public class TripPlanServiceImpl implements TripPlanService {
     ArrayList<TripStep> tripSteps = new ArrayList<TripStep>();
     TripStep tripStep = new TripStep();
 
-    // Finding all stopTimes using StopId
+    // Finding all stopTimes using fromStopId
     List<StopTime> stopTimes = stopTimeRepo.findByStopId(fromStopId);
     int stopSequence = -1;
     String realTripId = "";
     tripStep.setFromStopId(fromStopId);
 
     // Looping through all the stopTimes to get the right departureTime
-    // right departure time (typeOfDay, close departure)
+    // and right type of day (Weekday, Sat, Sun)
     for (int i = 0; i < stopTimes.size(); i++) {
       StopTime stopTime = stopTimes.get(i);
 
@@ -78,6 +78,7 @@ public class TripPlanServiceImpl implements TripPlanService {
         if (tripO.isPresent()) {
           Trip trip = tripO.get();
 
+          // Checking if the day is a weekday, sat, Sun
           DayOfWeek dayOfWeek = departTime.getDayOfWeek();
           String typeOfDay = "Sunday";
 
@@ -97,12 +98,14 @@ public class TripPlanServiceImpl implements TripPlanService {
             tripStep.setDepartTime(newDepart);
 
             // log.info("CK ____ Contains {} TypeOfDay", typeOfDay);
+
+            // Route Info
             realTripId = tripId;
             String routeId = trip.getRouteId();
             tripStep.setRouteId(routeId);
 
             Optional<Route> routeO = routeRepo.findById(routeId);
-            if (routeO.isPresent()) {
+            if (routeO.isPresent()) { // Get Route ShortName
               Route route = routeO.get();
               tripStep.setRouteName(route.getShortName());
             } else {
@@ -122,6 +125,8 @@ public class TripPlanServiceImpl implements TripPlanService {
       }
     }
 
+    // Using the verified tripId and StopSequence we loop throught the
+    // Stoptimes to find the stop we need to stop at
     stopTimes = stopTimeRepo.findByTripId(realTripId);
     for (int i = stopSequence; i < stopTimes.size(); i++) {
       StopTime stopTime = stopTimes.get(i);
@@ -139,11 +144,11 @@ public class TripPlanServiceImpl implements TripPlanService {
       }
     }
 
-    // Add TripStep to the TripSteps
+    log.info("TripPlan is Created (from {} and to {})", fromStopId, toStopId);
 
-    // TODO: Transfers are not handled
-    // Next would be to handle the transfers
-    log.info("TripPlan is Created (Transfers are not handled)");
+    log.info("Departure time is {} and arrival time is {}", tripStep.getDepartTime(), tripStep.getArrivalTime());
+
+    // Add TripStep to the TripSteps
     tripSteps.add(tripStep);
     tripPlan.setTripSteps(tripSteps);
     return tripPlan;

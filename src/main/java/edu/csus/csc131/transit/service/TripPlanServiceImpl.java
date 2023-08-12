@@ -57,21 +57,28 @@ public class TripPlanServiceImpl implements TripPlanService {
     // Finding all stopTimes using fromStopId
     List<StopTime> stopTimes = stopTimeRepo.findByStopId(fromStopId);
     int stopSequence = -1;
+    String realRouteId = "";
     String realTripId = "";
     tripStep.setFromStopId(fromStopId);
 
+    LocalDate date = departTime.toLocalDate();
+    String departTimeString = departTime.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+    LocalTime departSchedule = LocalTime.parse(departTimeString);
+    LocalTime stopDeparture = LocalTime.parse("23:59:59");
+
     // Looping through all the stopTimes to get the right departureTime
-    // and right type of day (Weekday, Sat, Sun)
+    // on the right type of day (Weekday, Sat, Sun)
     for (int i = 0; i < stopTimes.size(); i++) {
       StopTime stopTime = stopTimes.get(i);
 
-      String departTimeString = departTime.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-      LocalTime departSchedule = LocalTime.parse(departTimeString);
-      LocalTime stopDeparture = LocalTime.parse(stopTime.getDepartureTime());
+      if (stopTime.getArrivalTime().contains("24") || stopTime.getArrivalTime().contains("25")) {
+        continue;
+      }
 
-      // Checking to see if stop is after or at the provided departTime
-      if (stopDeparture.equals(departSchedule) || stopDeparture.isAfter(departSchedule)) {
-        // Found first time that is after the departTime provided
+      LocalTime timeTemp = LocalTime.parse(stopTime.getDepartureTime());
+
+      if (timeTemp.isBefore(stopDeparture) && (timeTemp.equals(departSchedule) || timeTemp.isAfter(departSchedule))) {
+
         String tripId = stopTime.getTripId();
 
         Optional<Trip> tripO = tripRepo.findById(tripId);
@@ -90,40 +97,40 @@ public class TripPlanServiceImpl implements TripPlanService {
 
           if (trip.getServiceId().contains(typeOfDay)) {
             // Found Trip based on WeekDay, Saturday, Sunday timing
-            LocalDate date = departTime.toLocalDate();
             ZonedDateTime newDepart = date.atTime(stopDeparture).atZone(departTime.getZone());
 
-            // log.info("CK ____ DepartTime Found: {}", newDepart.toString());
+            log.info("CK ____ DepartTime Found: {}", newDepart.toString());
+            log.info("CK ____ Contains {} TypeOfDay", typeOfDay);
 
             tripStep.setDepartTime(newDepart);
 
-            // log.info("CK ____ Contains {} TypeOfDay", typeOfDay);
-
             // Route Info
             realTripId = tripId;
-            String routeId = trip.getRouteId();
-            tripStep.setRouteId(routeId);
-
-            Optional<Route> routeO = routeRepo.findById(routeId);
-            if (routeO.isPresent()) { // Get Route ShortName
-              Route route = routeO.get();
-              tripStep.setRouteName(route.getShortName());
-            } else {
-              log.info("CK ____ TripPlanServiceImpl- RouteId not found");
-            }
-
+            realRouteId = trip.getRouteId();
+            stopDeparture = LocalTime.parse(stopTime.getDepartureTime());
             stopSequence = stopTime.getStopSequence();
-            break;
-
-          } else {
-            continue;
           }
-        } else {
-          // If TripId is not found then send error to terminal
-          log.info("CK ____ TripPlanServiceImpl- TripId not found");
         }
-      }
+
+      } else
+        continue;
     }
+
+    // Found Trip based on WeekDay, Saturday, Sunday timing
+    ZonedDateTime newDepart = date.atTime(stopDeparture).atZone(departTime.getZone());
+    tripStep.setDepartTime(newDepart);
+
+    // Setting Route information
+    Optional<Route> routeO = routeRepo.findById(realRouteId);
+    if (routeO.isPresent()) { // Get Route ShortName
+      Route route = routeO.get();
+      tripStep.setRouteId(realRouteId);
+      tripStep.setRouteName(route.getShortName());
+    } else {
+      log.info("CK ____ TripPlanServiceImpl- RouteId not found");
+    }
+
+    log.info("Departure Time = {}, TripId = {}", stopDeparture, realTripId);
 
     // Using the verified tripId and StopSequence we loop throught the
     // Stoptimes to find the stop we need to stop at
@@ -135,8 +142,8 @@ public class TripPlanServiceImpl implements TripPlanService {
       // Found the final stop and set the arrival time at the stop
       if (stopId.equals(toStopId)) {
         tripStep.setToStopId(stopTime.getStopId());
+        tripStep.setToStopId(toStopId);
 
-        LocalDate date = departTime.toLocalDate();
         LocalTime desiredTime = LocalTime.parse(stopTime.getArrivalTime());
         ZonedDateTime newZonedDateTime = date.atTime(desiredTime).atZone(departTime.getZone());
 
@@ -146,9 +153,10 @@ public class TripPlanServiceImpl implements TripPlanService {
 
     log.info("TripPlan is Created (from {} and to {})", fromStopId, toStopId);
 
-    log.info("Departure time is {} and arrival time is {}", tripStep.getDepartTime(), tripStep.getArrivalTime());
+    log.info("Departure time is {} and arrival time is {}",
+        tripStep.getDepartTime(), tripStep.getArrivalTime());
 
-    // Add TripStep to the TripSteps
+    // // Add TripStep to the TripSteps
     tripSteps.add(tripStep);
     tripPlan.setTripSteps(tripSteps);
     return tripPlan;
